@@ -1,0 +1,13 @@
+# Notes API + TMDB Proxy
+
+A backend learning project built with Node.js, Express, and MongoDB.
+
+## Features
+- Notes CRUD (create, read, update, delete) with validation
+- MongoDB Atlas database using Mongoose
+- Routes that call TMDB from the server, so the API token stays hidden
+
+## Run it locally
+1. `npm install`
+2. Create a `.env` file with `MONGO_URL` and `TMDB_TOKEN`
+3. `node app.js`
