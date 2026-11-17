@@ -6,43 +6,150 @@
   <title>Notes APP</title>
 </head>
 <body>
-  <h1> My notes </h1>
-  <input id="title" placeholder="Title"/>
-  <input id="content" placeholder="Content"/> 
-  <button onclick="addNote()"> ADD </button>
-  <div id="notes"></div>
+
+   <h1>My Notes</h1>
+
+  <div id="auth">
+    <h2>Login</h2>
+
+    <input id="email" type="email" placeholder="Email">
+
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+    <button onclick="signup()">Signup</button>
+
+    <p id="authMessage"></p>
+  </div>
+
+  <div id="notesSection" hidden>
+
+    <button onclick="logout()">Logout</button>
+
+    <h2>Create Note</h2>
+
+    <input id="title" placeholder="Title">
+    <input id="content" placeholder="Content">
+
+    <button onclick="addNote()">ADD</button>
+
+    <div id="notes"></div>
+
+  </div>
+
 
 <script>
-  console.log("Script started")
+  console.log("Script started");
 
- async function loadNotes(){
-   const response = await fetch("/notes");
-   const notes =  await response.json(); 
+  async function login() {
+    const email = document.getElementById("email").value; 
+    const password = document.getElementById("password").value; 
+  try{
+    const response = await fetch("/auth/login", {
+      method: "POST", 
+      headers:{
+        "Content-Type":"application/json"
+      }, 
+      body: JSON.stringify({
+        email: email, 
+        password: password
+      })
+    })
+    const data = await response.json(); 
+
+    if(!response.ok){
+      document.getElementById("authMessage").textContent = data.error;
+      return;
+    }
+    localStorage.setItem("token", data.token);
+    
+    document.getElementById("auth").hidden = true; 
+    document.getElementById("notesSection").hidden = false; 
+
+    document.getElementById("authMessage").textContent=""  
+
+    await loadNotes();
+  } catch(error){
+    console.log(error); 
+    alert("something went wrong while logging in ");
+  }
+  }
+
+  async function signup(){
+    const email = document.getElementById('email').value; 
+    const password = document.getElementById('password').value; 
   
+    try{
+      const response = await fetch("/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+      const data = await response.json(); 
+      if(!response.ok){
+        document.getElementById('authMessage').textContent = data.error; 
+        return;
+      }
+      document.getElementById('authMessage').textContent = "Account created! Please login."; 
+    } catch(error){
+      console.log(error); 
+      alert("Something went wrong during signup. ");
+    }
+
+  } 
+
+ function getAuthHeaders() {
+ 
+    const token = localStorage.getItem("token"); 
+    return{
+      Authorization: `Bearer ${token}`
+    };
+  }
+ function logout(){
+    localStorage.removeItem('token');
+    document.getElementById("auth").hidden = false; 
+    document.getElementById("notesSection").hidden = true; 
+    document.getElementById("notes").innerHTML ="";
+  }
+ async function loadNotes(){
+   const response = await fetch("/notes",{
+    headers: getAuthHeaders()
+   });
+   const notes =  await response.json(); 
+   if(!response.ok){
+    alert(notes.error); 
+   return; 
+   }
    const container = document.getElementById("notes"); 
    container.innerHTML =""; 
-   
-   notes.forEach((note)=>{
-    const div = document.createElement("div"); 
+  
+  notes.forEach((note) =>{
+      const div = document.createElement("div"); 
     div.innerHTML = `<h3>${note.title}</h3> 
     <p>${note.content}</p>
     <button onClick="deleteNote('${note._id}')"> Delete </button>
     <button onClick="editNote('${note._id}')">Edit</button>
     `; 
-    container.appendChild(div); 
-   })
-  }
+    container.appendChild(div);
+  })
+ }
   async function addNote(){
     const title = document.getElementById('title').value;
     const content = document.getElementById('content').value;
   
      const response = await fetch("/notes",{
       method: "POST", 
-      headers: {"Content-Type":"application/json"}, 
+      headers: {"Content-Type":"application/json",...getAuthHeaders()}, 
       body: JSON.stringify({title: title, content: content})
      })
      if(!response.ok){
- alert("EMPTY NOTE!");
+ const data = await response.json(); 
+ alert(data.error);
   return;
      }
        loadNotes(); 
@@ -51,7 +158,7 @@
   } 
 
   async function deleteNote(id){
-    await fetch("/notes/" + id, {method:"DELETE"}); 
+    await fetch("/notes/" + id, {method:"DELETE",headers: getAuthHeaders()}); 
     loadNotes();
   }
 
@@ -64,16 +171,41 @@
 
     const response = await fetch("/notes/" + id,{
       method:"PUT", 
-      headers: {"content-Type":"application/json"},
+      headers: {"Content-Type":"application/json",...getAuthHeaders()},
       body: JSON.stringify(({title: title, content: content}))
     })
      
     if(!response.ok){
       alert("Title and content can't be empty! ")
+      return;
     }
-    loadNotes();
+    await loadNotes();
   }
-  loadNotes();
+
+    async function initializeApp(){
+    const token = localStorage.getItem("token"); 
+    if(!token){
+      return;
+    }
+    try{
+      const response = await fetch("/auth/me", {
+        headers: getAuthHeaders()
+      })
+      if(!response.ok){
+        localStorage.removeItem("token"); 
+        return;
+      }
+      document.getElementById("auth").hidden = true; 
+      document.getElementById('notesSection').hidden = false; 
+
+      await loadNotes(); 
+
+    } catch(error){
+      console.log(error);
+    }
+  }
+
+  initializeApp();
 
 </script>
 </body>

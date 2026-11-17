@@ -59,7 +59,7 @@ router.put("/:id", async(req,res)=>{
   if(!req.body.title){
   return  res.status(400).json({error: "Title is required  doesn't "})
   }
- const updatedNote = await Note.findByIdAndUpdate(
+ const updatedNote = await Note.findOneAndUpdate(
   {_id: id,user: req.userId},
   {title: req.body.title, content: req.body.content}, 
   {returnDocument: "after", runValidators: true } 

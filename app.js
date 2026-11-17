@@ -14,12 +14,12 @@ const auth = require("./middleware/auth");
 
 
 
-app.use(express.json());
+app.use(express.json()); // read JSON bodies into req.body 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use("/auth", authRouter);
+app.use("/auth", authRouter); //anything starting /auth goes to routes/auth.js
 app.use("/movies", moviesRouter); 
-app.use("/notes",auth, noteRouter); 
+app.use("/notes",auth, noteRouter); //anything starting with /notes goes to route/notes.js
 app.use("/tmdb",tmdbRouter)
 
 mongoose

@@ -11,7 +11,7 @@ router.post("/signup", async(req,res) =>{
   try{
     const email = req.body.email; 
     const password = req.body.password;
-    if(!email || !password === null){
+    if(!email || !password){
       return res.status(400).json({error:"Email and password are required"})
     } 
  const existing = await User.findOne({email: email.toLowerCase()});
