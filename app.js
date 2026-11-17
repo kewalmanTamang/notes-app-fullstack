@@ -10,6 +10,8 @@ const moviesRouter = require("./routes/movies");
 const noteRouter = require("./routes/notes")
 const tmdbRouter = require("./routes/tmdb");
 const { default: mongoose } = require('mongoose');
+const auth = require("./middleware/auth");
+
 
 
 app.use(express.json());
@@ -17,7 +19,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/auth", authRouter);
 app.use("/movies", moviesRouter); 
-app.use("/notes", noteRouter); 
+app.use("/notes",auth, noteRouter); 
 app.use("/tmdb",tmdbRouter)
 
 mongoose

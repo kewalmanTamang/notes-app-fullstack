@@ -53,6 +53,7 @@ if(!isMatch){
   }
 })
 router.get("/me",auth,(req,res) =>{
+  console.log("req.userId is: ", req.userId);
   res.json({userId: req.userId});
 })
 
